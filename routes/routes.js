@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 module.exports = function (express, app) {
 	var todos = [];
 	var todoNextId = 1;
@@ -15,14 +17,7 @@ module.exports = function (express, app) {
 	// GET /todos/:id
 	router.get('/todos/:id', function (req, res) {
 		var todoId = parseInt(req.params.id, 10);
-		var matchedTodo;
-
-		// Iterate of todos array. Find the match
-		todos.forEach(function (todo) {
-			if(todo.id === todoId){
-				matchedTodo = todo;
-			}
-		});
+		var matchedTodo = _.findWhere(todos, {id: todoId});
 
 		if(matchedTodo) {
 			res.json(matchedTodo);
@@ -35,16 +30,23 @@ module.exports = function (express, app) {
 	router.post('/todos', function (req, res) {
 		var body = req.body;
 		
+		// Make filter
+		if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+			return res.status(400).send();
+		}
+		
 		// Add id field
 		body.id = todoNextId++;
 		
 		// Push body into array
-		if(typeof body.description === "string" && typeof body.completed === "boolean") {
-			todos.push(body);
-			res.json(body);
-		} else {
-			res.status(400).send();
-		}
+		todos.push(body);
+		res.json(body);
+//		if(typeof body.description === "string" && typeof body.completed === "boolean") {
+//			todos.push(body);
+//			res.json(body);
+//		} else {
+//			res.status(400).send();
+//		}
 	});
 	
 	app.use('/', router);
