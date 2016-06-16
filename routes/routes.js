@@ -96,6 +96,12 @@ module.exports = function (express, app) {
 			filteredTodos = _.where(filteredTodos, {completed: false});
 		}
 		
+		if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+			filteredTodos = _.filter(filteredTodos, function (todo) {
+				return todo.description.toLowerCase().indexOf(queryParams.q) > -1;
+			});
+		}
+		
 		res.json(filteredTodos);
 	});
 	
