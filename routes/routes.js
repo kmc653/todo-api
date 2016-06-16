@@ -9,10 +9,10 @@ module.exports = function (express, app) {
 		res.send('Todo API Root.');
 	});
 	
-	// GET /todos
-	router.get('/todos', function (req, res) {
-		res.json(todos);
-	});
+//	// GET /todos
+//	router.get('/todos', function (req, res) {
+//		res.json(todos);
+//	});
 
 	// GET /todos/:id
 	router.get('/todos/:id', function (req, res) {
@@ -83,7 +83,21 @@ module.exports = function (express, app) {
 		}
 		
 		res.json(_.extend(matchedTodo, validAttributes));
-	})
+	});
+	
+	// GET /todos?completed=true
+	router.get('/todos', function (req, res) {
+		var queryParams = req.query;
+		var filteredTodos = todos;
+		
+		if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+			filteredTodos = _.where(filteredTodos, {completed: true});
+		} else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+			filteredTodos = _.where(filteredTodos, {completed: false});
+		}
+		
+		res.json(filteredTodos);
+	});
 	
 	app.use('/', router);
 }
