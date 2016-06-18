@@ -1,6 +1,7 @@
 var _ = require('underscore');
+//var db = require('../db.js');
 
-module.exports = function (express, app) {
+module.exports = function (express, app, db) {
 	var todos = [];
 	var todoNextId = 1;
 	var router = express.Router();
@@ -30,19 +31,24 @@ module.exports = function (express, app) {
 	router.post('/todos', function (req, res) {
 		var body = _.pick(req.body, 'description', 'completed');
 		
-		// Make filter
-		if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-			return res.status(400).send();
-		}
-		
-		body.description = body.description.trim();
-		
-		// Add id field
-		body.id = todoNextId++;
-		
-		// Push body into array
-		todos.push(body);
-		res.json(body);
+		db.todo.create(body).then(function (todo) {
+			res.json(todo.toJSON());
+		}, function (e) {
+			res.status(400).json(e);
+		});
+//		// Make filter
+//		if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+//			return res.status(400).send();
+//		}
+//		
+//		body.description = body.description.trim();
+//		
+//		// Add id field
+//		body.id = todoNextId++;
+//		
+//		// Push body into array
+//		todos.push(body);
+//		res.json(body);
 	});
 	
 	//	DELETE /todos/:id
