@@ -1,5 +1,4 @@
 var _ = require('underscore');
-//var db = require('../db.js');
 
 module.exports = function (express, app, db) {
 	var todos = [];
@@ -9,22 +8,20 @@ module.exports = function (express, app, db) {
 	router.get('/', function (req, res) {
 		res.send('Todo API Root.');
 	});
-	
-//	// GET /todos
-//	router.get('/todos', function (req, res) {
-//		res.json(todos);
-//	});
 
 	// GET /todos/:id
 	router.get('/todos/:id', function (req, res) {
 		var todoId = parseInt(req.params.id, 10);
-		var matchedTodo = _.findWhere(todos, {id: todoId});
-
-		if(matchedTodo) {
-			res.json(matchedTodo);
-		} else {
-			res.status(404).send();
-		}
+		
+		db.todo.findById(todoId).then(function (todo) {
+			if (!!todo) {
+				res.json(todo.toJSON());
+			} else {
+				res.status(404).send();
+			}
+		}, function (e) {
+			res.status(500).send();
+		});
 	});
 	
 	// POST /todos
@@ -36,19 +33,6 @@ module.exports = function (express, app, db) {
 		}, function (e) {
 			res.status(400).json(e);
 		});
-//		// Make filter
-//		if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-//			return res.status(400).send();
-//		}
-//		
-//		body.description = body.description.trim();
-//		
-//		// Add id field
-//		body.id = todoNextId++;
-//		
-//		// Push body into array
-//		todos.push(body);
-//		res.json(body);
 	});
 	
 	//	DELETE /todos/:id
@@ -93,22 +77,26 @@ module.exports = function (express, app, db) {
 	
 	// GET /todos?completed=true
 	router.get('/todos', function (req, res) {
-		var queryParams = req.query;
-		var filteredTodos = todos;
+		var query = req.query;
+		var where = {};
 		
-		if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-			filteredTodos = _.where(filteredTodos, {completed: true});
-		} else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-			filteredTodos = _.where(filteredTodos, {completed: false});
+		if (query.hasOwnProperty('completed') && query.completed === 'true') {
+			where.completed = true;
+		} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
+			where.completed = false;
 		}
-		
-		if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-			filteredTodos = _.filter(filteredTodos, function (todo) {
-				return todo.description.toLowerCase().indexOf(queryParams.q) > -1;
-			});
+
+		if (query.hasOwnProperty('q') && query.q.length > 0) {
+			where.description = {
+				$like: '%' + query.q + '%'
+			};
 		}
-		
-		res.json(filteredTodos);
+
+		db.todo.findAll({where: where}).then(function (todos) {
+			res.json(todos);
+		}, function (e) {
+			res.status(500).send();
+		});
 	});
 	
 	app.use('/', router);
