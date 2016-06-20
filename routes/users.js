@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var bcrypt = require('bcrypt');
 
 module.exports = function (express, app, db) {
     var router = express.Router();
@@ -10,6 +11,17 @@ module.exports = function (express, app, db) {
             res.json(user.toPublicJSON());
         }, function(e) {
             res.status(400).json(e);
+        });
+    });
+
+    //  POST /users/login
+    router.post('/users/login', function(req, res) {
+        var body = _.pick(req.body, 'email', 'password');
+
+        db.user.authenticate(body).then(function(user) {
+            res.json(user.toPublicJSON());
+        }, function() {
+            res.status(401).send();
         });
     });
     
