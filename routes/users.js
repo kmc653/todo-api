@@ -1,7 +1,8 @@
 var _ = require('underscore');
 var bcrypt = require('bcrypt');
+var db = require('../db.js');
 
-module.exports = function (express, app, db) {
+module.exports = function (express, app) {
     var router = express.Router();
     
     router.post('/users', function(req, res) {

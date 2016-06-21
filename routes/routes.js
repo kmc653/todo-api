@@ -1,6 +1,8 @@
 var _ = require('underscore');
+var db = require('../db.js');
+var middleware = require('../middleware.js')(db);
 
-module.exports = function (express, app, db) {
+module.exports = function (express, app) {
 	var todos = [];
 	var todoNextId = 1;
 	var router = express.Router();
@@ -10,7 +12,7 @@ module.exports = function (express, app, db) {
 	});
 
 	// GET /todos/:id
-	router.get('/todos/:id', function (req, res) {
+	router.get('/todos/:id', middleware.requireAuthentication, function (req, res) {
 		var todoId = parseInt(req.params.id, 10);
 		
 		db.todo.findById(todoId).then(function (todo) {
@@ -25,7 +27,7 @@ module.exports = function (express, app, db) {
 	});
 	
 	// POST /todos
-	router.post('/todos', function (req, res) {
+	router.post('/todos', middleware.requireAuthentication, function (req, res) {
 		var body = _.pick(req.body, 'description', 'completed');
 		
 		db.todo.create(body).then(function (todo) {
@@ -36,7 +38,7 @@ module.exports = function (express, app, db) {
 	});
 	
 	//	DELETE /todos/:id
-	router.delete('/todos/:id', function (req, res) {
+	router.delete('/todos/:id', middleware.requireAuthentication, function (req, res) {
 		var todoId = parseInt(req.params.id, 10);
 		
 		db.todo.destroy({
@@ -57,7 +59,7 @@ module.exports = function (express, app, db) {
 	});
 	
 	//	PUT /todos/:id
-	router.put('/todos/:id', function (req, res) {
+	router.put('/todos/:id', middleware.requireAuthentication, function (req, res) {
 		var todoId = parseInt(req.params.id, 10);
 		var body = _.pick(req.body, 'description', 'completed');
 		var attributes = {};
@@ -86,7 +88,7 @@ module.exports = function (express, app, db) {
 	});
 	
 	// GET /todos?completed=true
-	router.get('/todos', function (req, res) {
+	router.get('/todos', middleware.requireAuthentication, function (req, res) {
 		var query = req.query;
 		var where = {};
 		

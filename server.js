@@ -6,10 +6,10 @@ var db = require('./db.js');
 
 app.use(bodyParser.json());
 
-require('./routes/routes.js')(express, app, db);
-require('./routes/users.js')(express, app, db);
+require('./routes/routes.js')(express, app);
+require('./routes/users.js')(express, app);
 
-db.sequelize.sync().then(function() {
+db.sequelize.sync({force: true}).then(function() {
 	app.listen(PORT, function () {
 		console.log('Express listening on port ' + PORT + '!');
 	});
