@@ -15,7 +15,12 @@ module.exports = function (express, app) {
 	router.get('/todos/:id', middleware.requireAuthentication, function (req, res) {
 		var todoId = parseInt(req.params.id, 10);
 		
-		db.todo.findById(todoId).then(function (todo) {
+		db.todo.findOne({
+			where: {
+				id: todoId,
+				userId: req.user.get('id')
+			}
+		}).then(function (todo) {
 			if (!!todo) {
 				res.json(todo.toJSON());
 			} else {
@@ -47,7 +52,8 @@ module.exports = function (express, app) {
 		
 		db.todo.destroy({
 			where: {
-				id: todoId
+				id: todoId,
+				userId: req.user.get('id')
 			}
 		}).then(function (rowDeleted) {
 			if (rowDeleted === 0) {
@@ -76,7 +82,12 @@ module.exports = function (express, app) {
 			attributes.description = body.description;
 		}
 
-		db.todo.findById(todoId).then(function (todo) {
+		db.todo.findOne({
+			where: {
+				id: todoId,
+				userId: req.user.get('id')
+			}
+		}).then(function (todo) {
 			if (todo) {
 				todo.update(attributes).then(function (todo) {
 					res.json(todo.toJSON());
@@ -94,7 +105,9 @@ module.exports = function (express, app) {
 	// GET /todos?completed=true
 	router.get('/todos', middleware.requireAuthentication, function (req, res) {
 		var query = req.query;
-		var where = {};
+		var where = {
+			userId: req.user.get('id')
+		};
 		
 		if (query.hasOwnProperty('completed') && query.completed === 'true') {
 			where.completed = true;
